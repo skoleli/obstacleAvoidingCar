@@ -26,7 +26,7 @@
 #define FORWARD 0
 #define LEFT 1
 #define RIGHT 2
-#define BACWARD 3
+#define BACKWARD 3
 
 Servo servo;
 byte maxDist = 150; // maximum sensing distance, in cm (further objects are ignored)
@@ -75,29 +75,39 @@ void setup(){
 }
 
 void loop(){
-  servo.write(forwardAngle);
-  delay(500);
-  currD = getDistance();
-  if (currD <= stopDist){
-    brake();
-    moveBackward();
-    delay(200);
-    brake();
-    turnDir = checkDirection();
-    if (turnDir == RIGHT){
-      turnRight();
-      delay(100);
+  
+  if (digitalRead(DIPSWITCH) == HIGH){ // dip switch aciksa
+    
+    servo.write(forwardAngle);
+    delay(500);
+    currD = getDistance();
+    if (currD <= stopDist){
       brake();
-    }
-    else if (turnDir == LEFT){
-      turnLeft();
-      delay(100);
+      moveBackward();
+      delay(200);
+      if (digitalRead(BUTTON) == HIGH){ // mikro switch basili ise
+        brake();
+        moveForward();
+        delay(100);
+      }
       brake();
+      turnDir = checkDirection();
+      if (turnDir == RIGHT){
+        turnRight();
+        delay(100);
+        brake();
+      }
+      else if (turnDir == LEFT){
+        turnLeft();
+        delay(100);
+        brake();
+      }
     }
-  }
-  else{
-    moveForward();
-  }
+    else{
+      moveForward();
+    }
+  }else brake();
+  
 }
 
 void brake(){
