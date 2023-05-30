@@ -23,10 +23,25 @@
 #define TRIG A1
 #define ECHO A2
 
+#define FORWARD 0
+#define LEFT 1
+#define RIGHT 2
+#define BACWARD 3
+
 Servo servo;
 byte maxDist = 150; // maximum sensing distance, in cm (further objects are ignored)
 byte stopDist = 50; // minimum distance, in cm (car will stop)
 float timeOut = 2*(maxDist+10)/100/340*1000000; // max time for return signal
+
+// values to determinate servo's angles.
+int forwardAngle = 100;
+int leftAngle = 190;
+int rightAngle = 10;
+
+int currD; // current distance
+int turnDir; // direction to be turned
+
+boolean goesForward = false;
 
 void setup(){
   // setting up motor driver 
@@ -56,9 +71,103 @@ void setup(){
   digitalWrite(INPUT_4, LOW);
   digitalWrite(ENABLE_1_2, HIGH);
   digitalWrite(ENABLE_3_4, HIGH);
-  servo.write(10);
+  servo.write(forwardAngle);
 }
 
 void loop(){
-
+  servo.write(forwardAngle);
+  delay(500);
+  currD = getDistance();
+  if (currD <= stopDist){
+    brake();
+    moveBackward();
+    delay(200);
+    brake();
+    turnDir = checkDirection();
+    if (turnDir == RIGHT){
+      turnRight();
+      delay(100);
+      brake();
+    }
+    else if (turnDir == LEFT){
+      turnLeft();
+      delay(100);
+      brake();
+    }
+  }
+  else{
+    moveForward();
+  }
 }
+
+void brake(){
+  digitalWrite(INPUT_1, LOW);
+  digitalWrite(INPUT_2, LOW);
+  digitalWrite(INPUT_3, LOW);
+  digitalWrite(INPUT_4, LOW);
+}
+
+void moveForward(){
+  if(!goesForward){
+    goesForward = true;
+    digitalWrite(INPUT_1, HIGH);
+    digitalWrite(INPUT_2, LOW);
+    digitalWrite(INPUT_3, HIGH);
+    digitalWrite(INPUT_4, LOW);
+  }
+}
+
+void moveBackward(){
+  goesForward = false;
+  digitalWrite(INPUT_1, LOW);
+  digitalWrite(INPUT_2, HIGH);
+  digitalWrite(INPUT_3, LOW);
+  digitalWrite(INPUT_4, HIGH);
+}
+
+void turnLeft(){
+  digitalWrite(INPUT_1, HIGH); 
+  digitalWrite(INPUT_2, LOW); 
+  digitalWrite(INPUT_3, LOW); 
+  digitalWrite(INPUT_4, HIGH);
+}
+
+void turnRight(){
+  digitalWrite(INPUT_1, LOW); 
+  digitalWrite(INPUT_2, HIGH); 
+  digitalWrite(INPUT_3, HIGH); 
+  digitalWrite(INPUT_4, LOW);
+}
+
+int checkDirection(){
+  int dLeft = 0;
+  int dRight = 0;
+  int direction = FORWARD;
+  servo.write(leftAngle);
+  delay(500);
+  dLeft = getDistance();
+  servo.write(rightAngle);
+  delay(500);
+  dRight = getDistance();
+  if (dLeft >= maxDist && dRight >= maxDist)
+    direction = LEFT;
+  else if (dLeft <= stopDist && dRight <= stopDist)
+    direction = BACKWARD;
+  else if (dLeft >= dRight)
+    direction = LEFT;
+  else if (dRight < dLeft)
+    direction = RIGHT;
+  return direction;
+}
+
+int getDistance(){
+  unsigned long pulseTime;
+  int d;
+  digitalWrite(TRIG, HIGH);
+  delay(1);
+  digitalWrite(TRIG, LOW);
+  pulseTime = pulseIn(ECHO, HIGH, timeOut);
+  d = (float)pulseTime * 340 /2 /10000;
+  return d;
+}
+
