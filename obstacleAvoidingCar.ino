@@ -22,6 +22,8 @@
 // pins for ultrasonic sensor
 #define TRIG A1
 #define ECHO A2
+// led's pin
+#define LED 6
 
 #define FORWARD 0
 #define LEFT 1
@@ -51,6 +53,7 @@ void setup(){
   pinMode(INPUT_2, OUTPUT);
   pinMode(INPUT_1, OUTPUT);
   pinMode(ENABLE_1_2, OUTPUT);
+  pinMode(LED, OUTPUT);
 
   // setting up servo pin
   //pinMode(SERVO, OUTPUT);
@@ -72,12 +75,14 @@ void setup(){
   digitalWrite(ENABLE_1_2, HIGH);
   digitalWrite(ENABLE_3_4, HIGH);
   servo.write(forwardAngle);
+
+  digitalWrite(LED, LOW);
 }
 
 void loop(){
   
   if (digitalRead(DIPSWITCH) == HIGH){ // dip switch aciksa
-    
+    digitalWrite(LED, HIGH);
     servo.write(forwardAngle);
     delay(500);
     currD = getDistance();
@@ -106,8 +111,10 @@ void loop(){
     else{
       moveForward();
     }
-  }else brake();
-  
+  }else {
+    brake();
+    digitalWrite(LED, LOW);
+  }
 }
 
 void brake(){
