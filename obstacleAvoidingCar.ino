@@ -8,12 +8,18 @@
 
 /* Defining pins */
 // motor driver pins 
-#define ENABLE_3_4 3
-#define INPUT_4 4
-#define INPUT_3 5
-#define INPUT_2 7
-#define INPUT_1 8
-#define ENABLE_1_2 9
+#define MD_1_INPUT_4 4
+#define MD_1_INPUT_3 5
+#define MD_1_INPUT_2 7
+#define MD_1_INPUT_1 8
+#define ENABLE_MD1 9
+
+#define MD_2_INPUT_4 13
+#define MD_2_INPUT_3 3
+#define MD_2_INPUT_2 0
+#define MD_2_INPUT_1 1
+#define ENABLE_MD2 2
+
 // servo motor pin
 #define SERVO 10
 // pins for button and dip switch
@@ -45,14 +51,28 @@ int turnDir; // direction to be turned
 
 boolean goesForward = false;
 
+void brake();
+void moveForward();
+void moveBackward();
+void turnLeft();
+void turnRight();
+int checkDirection();
+int getDistance();
+
 void setup(){
   // setting up motor driver 
-  pinMode(ENABLE_3_4, OUTPUT);
-  pinMode(INPUT_4, OUTPUT);
-  pinMode(INPUT_3, OUTPUT);
-  pinMode(INPUT_2, OUTPUT);
-  pinMode(INPUT_1, OUTPUT);
-  pinMode(ENABLE_1_2, OUTPUT);
+  pinMode(ENABLE_MD1, OUTPUT);
+  pinMode(MD_1_INPUT_4, OUTPUT);
+  pinMode(MD_1_INPUT_3, OUTPUT);
+  pinMode(MD_1_INPUT_2, OUTPUT);
+  pinMode(MD_1_INPUT_1, OUTPUT);
+
+  pinMode(ENABLE_MD2, OUTPUT);
+  pinMode(MD_2_INPUT_4, OUTPUT);
+  pinMode(MD_2_INPUT_3, OUTPUT);
+  pinMode(MD_2_INPUT_2, OUTPUT);
+  pinMode(MD_2_INPUT_1, OUTPUT);
+
   pinMode(LED, OUTPUT);
 
   // setting up servo pin
@@ -68,19 +88,24 @@ void setup(){
   pinMode(ECHO, INPUT);
 
   // setting up initial state of motors
-  digitalWrite(INPUT_1, LOW);
-  digitalWrite(INPUT_2, LOW);
-  digitalWrite(INPUT_3, LOW);
-  digitalWrite(INPUT_4, LOW);
-  digitalWrite(ENABLE_1_2, HIGH);
-  digitalWrite(ENABLE_3_4, HIGH);
+  digitalWrite(MD_1_INPUT_1, LOW);
+  digitalWrite(MD_1_INPUT_2, LOW);
+  digitalWrite(MD_1_INPUT_3, LOW);
+  digitalWrite(MD_1_INPUT_4, LOW);
+  digitalWrite(ENABLE_MD1, HIGH);
+  digitalWrite(MD_2_INPUT_1, LOW);
+  digitalWrite(MD_2_INPUT_2, LOW);
+  digitalWrite(MD_2_INPUT_3, LOW);
+  digitalWrite(MD_2_INPUT_4, LOW);
+  digitalWrite(ENABLE_MD2, HIGH);
   servo.write(forwardAngle);
 
   digitalWrite(LED, LOW);
+  Serial.begin(9600);
 }
 
 void loop(){
-  
+  Serial.println(digitalRead(DIPSWITCH));
   if (digitalRead(DIPSWITCH) == HIGH){ // dip switch aciksa
     digitalWrite(LED, HIGH);
     servo.write(forwardAngle);
@@ -118,42 +143,63 @@ void loop(){
 }
 
 void brake(){
-  digitalWrite(INPUT_1, LOW);
-  digitalWrite(INPUT_2, LOW);
-  digitalWrite(INPUT_3, LOW);
-  digitalWrite(INPUT_4, LOW);
+  digitalWrite(MD_1_INPUT_1, LOW);
+  digitalWrite(MD_1_INPUT_2, LOW);
+  digitalWrite(MD_1_INPUT_3, LOW);
+  digitalWrite(MD_1_INPUT_4, LOW);
+  digitalWrite(MD_2_INPUT_1, LOW);
+  digitalWrite(MD_2_INPUT_2, LOW);
+  digitalWrite(MD_2_INPUT_3, LOW);
+  digitalWrite(MD_2_INPUT_4, LOW);
 }
 
 void moveForward(){
   if(!goesForward){
     goesForward = true;
-    digitalWrite(INPUT_1, HIGH);
-    digitalWrite(INPUT_2, LOW);
-    digitalWrite(INPUT_3, HIGH);
-    digitalWrite(INPUT_4, LOW);
+    digitalWrite(MD_1_INPUT_1, HIGH);
+    digitalWrite(MD_1_INPUT_2, LOW);
+    digitalWrite(MD_1_INPUT_3, HIGH);
+    digitalWrite(MD_1_INPUT_4, LOW);
+    digitalWrite(MD_2_INPUT_1, HIGH);
+    digitalWrite(MD_2_INPUT_2, LOW);
+    digitalWrite(MD_2_INPUT_3, HIGH);
+    digitalWrite(MD_2_INPUT_4, LOW);
   }
 }
 
 void moveBackward(){
   goesForward = false;
-  digitalWrite(INPUT_1, LOW);
-  digitalWrite(INPUT_2, HIGH);
-  digitalWrite(INPUT_3, LOW);
-  digitalWrite(INPUT_4, HIGH);
+  digitalWrite(MD_1_INPUT_1, LOW);
+  digitalWrite(MD_1_INPUT_2, HIGH);
+  digitalWrite(MD_1_INPUT_3, LOW);
+  digitalWrite(MD_1_INPUT_4, HIGH);
+  digitalWrite(MD_2_INPUT_1, LOW);
+  digitalWrite(MD_2_INPUT_2, HIGH);
+  digitalWrite(MD_2_INPUT_3, LOW);
+  digitalWrite(MD_2_INPUT_4, HIGH);
 }
 
+
 void turnLeft(){
-  digitalWrite(INPUT_1, HIGH); 
-  digitalWrite(INPUT_2, LOW); 
-  digitalWrite(INPUT_3, LOW); 
-  digitalWrite(INPUT_4, HIGH);
+  digitalWrite(MD_1_INPUT_1, HIGH); 
+  digitalWrite(MD_1_INPUT_2, LOW); 
+  digitalWrite(MD_1_INPUT_3, LOW); 
+  digitalWrite(MD_1_INPUT_4, HIGH);
+  digitalWrite(MD_2_INPUT_1, HIGH);
+  digitalWrite(MD_2_INPUT_2, LOW);
+  digitalWrite(MD_2_INPUT_3, LOW);
+  digitalWrite(MD_2_INPUT_4, HIGH);
 }
 
 void turnRight(){
-  digitalWrite(INPUT_1, LOW); 
-  digitalWrite(INPUT_2, HIGH); 
-  digitalWrite(INPUT_3, HIGH); 
-  digitalWrite(INPUT_4, LOW);
+  digitalWrite(MD_1_INPUT_1, LOW); 
+  digitalWrite(MD_1_INPUT_2, HIGH); 
+  digitalWrite(MD_1_INPUT_3, HIGH); 
+  digitalWrite(MD_1_INPUT_4, LOW);
+  digitalWrite(MD_2_INPUT_1, LOW);
+  digitalWrite(MD_2_INPUT_2, HIGH);
+  digitalWrite(MD_2_INPUT_3, HIGH);
+  digitalWrite(MD_2_INPUT_4, LOW);
 }
 
 int checkDirection(){
