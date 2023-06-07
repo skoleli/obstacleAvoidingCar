@@ -106,6 +106,23 @@ void setup(){
 }
 
 void loop(){
+  if (digitalRead(DIPSWITCH) == HIGH){
+    moveForward();
+    delay(2000);
+    brake();
+    int turnDir = checkDirection();
+    turnRight();
+    delay(100);
+    brake();
+  }
+  else {
+    brake();
+    digitalWrite(LED, LOW);
+  }
+}
+
+/*
+void loop(){
   Serial.println(digitalRead(BUTTON));
   if (digitalRead(DIPSWITCH) == HIGH){ // dip switch aciksa
     digitalWrite(LED, HIGH);
@@ -142,7 +159,7 @@ void loop(){
     brake();
     digitalWrite(LED, LOW);
   }
-}
+}*/
 
 void brake(){
   digitalWrite(MD_1_INPUT_1, LOW);
@@ -153,15 +170,23 @@ void brake(){
   digitalWrite(MD_2_INPUT_2, LOW);
   digitalWrite(MD_2_INPUT_3, LOW);
   digitalWrite(MD_2_INPUT_4, LOW);
+  disable();
+}
+
+void disable(){
   digitalWrite(ENABLE_MD1, LOW);
   digitalWrite(ENABLE_MD2, LOW);
+}
+
+void enable(){
+  digitalWrite(ENABLE_MD1, HIGH);
+  digitalWrite(ENABLE_MD2, HIGH);
 }
 
 void moveForward(){
   if(!goesForward){
     goesForward = true;
-    analogWrite(ENABLE_MD1, 150);
-    analogWrite(ENABLE_MD2, 150);
+    enable();
     digitalWrite(MD_1_INPUT_1, HIGH);
     digitalWrite(MD_1_INPUT_2, LOW);
     digitalWrite(MD_1_INPUT_3, LOW);
@@ -175,8 +200,7 @@ void moveForward(){
 
 void moveBackward(){
   goesForward = false;
-  digitalWrite(ENABLE_MD1, HIGH);
-  digitalWrite(ENABLE_MD2, HIGH);
+  enable();
   digitalWrite(MD_1_INPUT_1, LOW);
   digitalWrite(MD_1_INPUT_2, HIGH);
   digitalWrite(MD_1_INPUT_3, HIGH);
@@ -189,8 +213,7 @@ void moveBackward(){
 
 
 void turnLeft(){
-  digitalWrite(ENABLE_MD1, HIGH);
-  digitalWrite(ENABLE_MD2, HIGH);
+  enable();
   digitalWrite(MD_1_INPUT_1, LOW); 
   digitalWrite(MD_1_INPUT_2, HIGH); 
   digitalWrite(MD_1_INPUT_3, HIGH); 
@@ -202,8 +225,7 @@ void turnLeft(){
 }
 
 void turnRight(){
-  digitalWrite(ENABLE_MD1, HIGH);
-  digitalWrite(ENABLE_MD2, HIGH);
+  enable();
   digitalWrite(MD_1_INPUT_1, HIGH); 
   digitalWrite(MD_1_INPUT_2, LOW); 
   digitalWrite(MD_1_INPUT_3, LOW); 
@@ -247,4 +269,5 @@ int getDistance(){
   d = (float)pulseTime * 340 /2 /10000;
   return d;
 }
+
 
