@@ -38,7 +38,7 @@
 
 Servo servo;
 byte maxDist = 150; // maximum sensing distance, in cm (further objects are ignored)
-byte stopDist = 50; // minimum distance, in cm (car will stop)
+byte stopDist = 40; // minimum distance, in cm (car will stop)
 float timeOut = 2*(maxDist+10)/100/340*1000000; // max time for return signal
 
 // values to determinate servo's angles.
@@ -50,6 +50,7 @@ int currD; // current distance
 int turnDir; // direction to be turned
 
 boolean goesForward = false;
+boolean isEnabled = false;
 
 void brake();
 void moveForward();
@@ -92,12 +93,12 @@ void setup(){
   digitalWrite(MD_1_INPUT_2, LOW);
   digitalWrite(MD_1_INPUT_3, LOW);
   digitalWrite(MD_1_INPUT_4, LOW);
-  digitalWrite(ENABLE_MD1, HIGH);
+  digitalWrite(ENABLE_MD1, LOW);
   digitalWrite(MD_2_INPUT_1, LOW);
   digitalWrite(MD_2_INPUT_2, LOW);
   digitalWrite(MD_2_INPUT_3, LOW);
   digitalWrite(MD_2_INPUT_4, LOW);
-  digitalWrite(ENABLE_MD2, HIGH);
+  digitalWrite(ENABLE_MD2, LOW);
   servo.write(forwardAngle);
 
   digitalWrite(LED, LOW);
@@ -105,7 +106,7 @@ void setup(){
 }
 
 void loop(){
-  Serial.println(digitalRead(DIPSWITCH));
+  Serial.println(digitalRead(BUTTON));
   if (digitalRead(DIPSWITCH) == HIGH){ // dip switch aciksa
     digitalWrite(LED, HIGH);
     servo.write(forwardAngle);
@@ -116,6 +117,7 @@ void loop(){
       moveBackward();
       delay(200);
       if (digitalRead(BUTTON) == HIGH){ // mikro switch basili ise
+        digitalWrite(LED, HIGH);  
         brake();
         moveForward();
         delay(100);
@@ -124,13 +126,13 @@ void loop(){
       turnDir = checkDirection();
       if (turnDir == RIGHT){
         turnRight();
-        delay(100);
-        brake();
+        delay(200);
+        moveForward();
       }
       else if (turnDir == LEFT){
         turnLeft();
-        delay(100);
-        brake();
+        delay(200);
+        moveForward();
       }
     }
     else{
@@ -151,47 +153,44 @@ void brake(){
   digitalWrite(MD_2_INPUT_2, LOW);
   digitalWrite(MD_2_INPUT_3, LOW);
   digitalWrite(MD_2_INPUT_4, LOW);
+  digitalWrite(ENABLE_MD1, LOW);
+  digitalWrite(ENABLE_MD2, LOW);
 }
 
 void moveForward(){
   if(!goesForward){
     goesForward = true;
+    analogWrite(ENABLE_MD1, 150);
+    analogWrite(ENABLE_MD2, 150);
     digitalWrite(MD_1_INPUT_1, HIGH);
     digitalWrite(MD_1_INPUT_2, LOW);
-    digitalWrite(MD_1_INPUT_3, HIGH);
-    digitalWrite(MD_1_INPUT_4, LOW);
+    digitalWrite(MD_1_INPUT_3, LOW);
+    digitalWrite(MD_1_INPUT_4, HIGH);
     digitalWrite(MD_2_INPUT_1, HIGH);
     digitalWrite(MD_2_INPUT_2, LOW);
-    digitalWrite(MD_2_INPUT_3, HIGH);
-    digitalWrite(MD_2_INPUT_4, LOW);
+    digitalWrite(MD_2_INPUT_3, LOW);
+    digitalWrite(MD_2_INPUT_4, HIGH);
   }
 }
 
 void moveBackward(){
   goesForward = false;
+  digitalWrite(ENABLE_MD1, HIGH);
+  digitalWrite(ENABLE_MD2, HIGH);
   digitalWrite(MD_1_INPUT_1, LOW);
   digitalWrite(MD_1_INPUT_2, HIGH);
-  digitalWrite(MD_1_INPUT_3, LOW);
-  digitalWrite(MD_1_INPUT_4, HIGH);
+  digitalWrite(MD_1_INPUT_3, HIGH);
+  digitalWrite(MD_1_INPUT_4, LOW);
   digitalWrite(MD_2_INPUT_1, LOW);
   digitalWrite(MD_2_INPUT_2, HIGH);
-  digitalWrite(MD_2_INPUT_3, LOW);
-  digitalWrite(MD_2_INPUT_4, HIGH);
+  digitalWrite(MD_2_INPUT_3, HIGH);
+  digitalWrite(MD_2_INPUT_4, LOW);
 }
 
 
 void turnLeft(){
-  digitalWrite(MD_1_INPUT_1, HIGH); 
-  digitalWrite(MD_1_INPUT_2, LOW); 
-  digitalWrite(MD_1_INPUT_3, LOW); 
-  digitalWrite(MD_1_INPUT_4, HIGH);
-  digitalWrite(MD_2_INPUT_1, HIGH);
-  digitalWrite(MD_2_INPUT_2, LOW);
-  digitalWrite(MD_2_INPUT_3, LOW);
-  digitalWrite(MD_2_INPUT_4, HIGH);
-}
-
-void turnRight(){
+  digitalWrite(ENABLE_MD1, HIGH);
+  digitalWrite(ENABLE_MD2, HIGH);
   digitalWrite(MD_1_INPUT_1, LOW); 
   digitalWrite(MD_1_INPUT_2, HIGH); 
   digitalWrite(MD_1_INPUT_3, HIGH); 
@@ -202,21 +201,36 @@ void turnRight(){
   digitalWrite(MD_2_INPUT_4, LOW);
 }
 
+void turnRight(){
+  digitalWrite(ENABLE_MD1, HIGH);
+  digitalWrite(ENABLE_MD2, HIGH);
+  digitalWrite(MD_1_INPUT_1, HIGH); 
+  digitalWrite(MD_1_INPUT_2, LOW); 
+  digitalWrite(MD_1_INPUT_3, LOW); 
+  digitalWrite(MD_1_INPUT_4, HIGH);
+  digitalWrite(MD_2_INPUT_1, HIGH);
+  digitalWrite(MD_2_INPUT_2, LOW);
+  digitalWrite(MD_2_INPUT_3, LOW);
+  digitalWrite(MD_2_INPUT_4, HIGH);
+}
+
 int checkDirection(){
   int dLeft = 0;
   int dRight = 0;
   int direction = FORWARD;
   servo.write(leftAngle);
-  delay(500);
+  delay(1000);
   dLeft = getDistance();
-  servo.write(rightAngle);
   delay(500);
+  servo.write(rightAngle);
+  delay(1000);
   dRight = getDistance();
-  if (dLeft >= maxDist && dRight >= maxDist)
+  delay(500);
+  if ((dLeft >= maxDist && dRight >= maxDist) or dLeft==0 && dRight ==0)
     direction = LEFT;
   else if (dLeft <= stopDist && dRight <= stopDist)
     direction = BACKWARD;
-  else if (dLeft >= dRight)
+  else if (dLeft >= dRight )
     direction = LEFT;
   else if (dRight < dLeft)
     direction = RIGHT;
